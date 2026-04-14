@@ -1,37 +1,12 @@
-import { createApp } from './app';
-import { config, validateConfig } from '@config/index';
-import { PrismaClient } from '@prisma/client';
+import { app } from "./app";
+import { env } from "./config/env";
 
-const prisma = new PrismaClient();
-
-const startServer = async (): Promise<void> => {
-  try {
-    // 환경 변수 검증
-    validateConfig();
-
-    // 데이터베이스 연결 확인
-    await prisma.$connect();
-    console.log('✅ 데이터베이스 연결 성공');
-
-    // Express 앱 생성
-    const app = createApp();
-
-    // 서버 시작
-    app.listen(config.port, () => {
-      console.log(`🚀 서버가 포트 ${config.port}에서 실행 중입니다`);
-      console.log(`📝 환경: ${config.nodeEnv}`);
-    });
-  } catch (error) {
-    console.error('❌ 서버 시작 실패:', error);
-    process.exit(1);
-  }
-};
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('\n⏹️  서버 종료 중...');
-  await prisma.$disconnect();
-  process.exit(0);
+// 서버 엔트리 포인트.
+// - env.ts에서 환경변수를 검증/파싱하고
+// - app.ts에서 라우터/미들웨어를 구성한 뒤
+// - 여기서 실제 포트를 열어 요청을 받습니다.
+app.listen(env.PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`[api] listening on :${env.PORT} (${env.NODE_ENV})`);
 });
 
-startServer();
